@@ -746,6 +746,28 @@ namespace osu.Game.Screens.Select
             updateBackgroundDim();
             updateWedgeVisibility();
             fetchOnlineInfo(force: ReferenceEquals(e.OldValue, e.NewValue));
+
+            autoDeselectConversionModsForNativeBeatmaps();
+        }
+
+        /// <summary>
+        /// Auto-deselects <see cref="IApplicableToBeatmapConverter"/> mods (e.g. Mania key mods and Dual Stages)
+        /// when the selected beatmap is native to the current ruleset, since those mods do not affect native beatmaps.
+        /// </summary>
+        private void autoDeselectConversionModsForNativeBeatmaps()
+        {
+            var currentMods = Mods.Value;
+            if (currentMods.Count == 0)
+                return;
+
+            // Only apply this logic when the beatmap's ruleset matches the active ruleset (native beatmap, not a convert).
+            if (!Ruleset.Value.Equals(Beatmap.Value.BeatmapInfo.Ruleset))
+                return;
+
+            var filteredMods = currentMods.Where(m => m is not IApplicableToBeatmapConverter).ToArray();
+
+            if (filteredMods.Length != currentMods.Count)
+                Mods.Value = filteredMods;
         }
 
         private void onLeavingScreen()
